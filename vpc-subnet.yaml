@@ -31,7 +31,8 @@ spec:
     groupName: izhang-crossplane
     description: Cluster communication with worker nodes
     ingress:
-      - toPort: 22
+      - fromPort: 22
+        toPort: 22
         ipProtocol: tcp
         ipRanges:
           - cidrIp: 0.0.0.0/0

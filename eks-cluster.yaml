@@ -16,8 +16,8 @@ spec:
       subnetIdRefs:
         - name: sample-subnet1
         - name: sample-subnet2
-      securityGroupIds:
-        - $SECURITY_GROUP_ID
+      securityGroupIdRefs:
+        - name: sample-cluster-sg
     version: "1.21"
   writeConnectionSecretToRef:
     name: $KUBECONFIG_SECRET_NAME

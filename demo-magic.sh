@@ -184,10 +184,6 @@ function check_pv() {
     }
 }
 
-function comment {
-    printf "\n\n#### %s ####\n\n" "$1"
-}
-
 check_pv
 #
 # handle some default params

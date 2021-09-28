@@ -11,5 +11,4 @@ Just run `./demo`, it should:
 **Note** To make sure this task is mainly focues on creating eks cluster, I did the following steps on AWS console directly
 ```
 1. created the AMI role with EKS polciy on AWS console
-2. created a default security group for VPC created by the `./demo`
 ```
