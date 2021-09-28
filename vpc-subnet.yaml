@@ -1,0 +1,75 @@
+---
+apiVersion: ec2.aws.crossplane.io/v1beta1
+kind: VPC
+metadata:
+  name: sample-vpc
+spec:
+  forProvider:
+    region: us-east-1
+    tags:
+      - key: owner
+        value: izhang-crossplane
+    cidrBlock: 10.0.0.0/16
+    enableDnsSupport: true
+    enableDnsHostNames: true
+    instanceTenancy: default
+  providerConfigRef:
+    name: default
+---
+apiVersion: ec2.aws.crossplane.io/v1beta1
+kind: SecurityGroup
+metadata:
+  name: sample-cluster-sg
+spec:
+  forProvider:
+    region: us-east-1
+    vpcIdRef:
+      name: sample-vpc
+    tags:
+      - key: owner
+        value: izhang-crossplane
+    groupName: izhang-crossplane
+    description: Cluster communication with worker nodes
+    ingress:
+      - toPort: 22
+        ipProtocol: tcp
+        ipRanges:
+          - cidrIp: 0.0.0.0/0
+  providerConfigRef:
+    name: default
+---
+apiVersion: ec2.aws.crossplane.io/v1beta1
+kind: Subnet
+metadata:
+  name: sample-subnet1
+spec:
+  forProvider:
+    region: us-east-1
+    tags:
+      - key: owner
+        value: izhang-crossplane
+    availabilityZone: us-east-1b
+    cidrBlock: 10.0.1.0/24
+    vpcIdRef:
+      name: sample-vpc
+    mapPublicIPOnLaunch: true
+  providerConfigRef:
+    name: default
+---
+apiVersion: ec2.aws.crossplane.io/v1beta1
+kind: Subnet
+metadata:
+  name: sample-subnet2
+spec:
+  forProvider:
+    region: us-east-1
+    tags:
+      - key: owner
+        value: izhang-crossplane
+    availabilityZone: us-east-1c
+    cidrBlock: 10.0.2.0/24
+    vpcIdRef:
+      name: sample-vpc
+    mapPublicIPOnLaunch: true
+  providerConfigRef:
+    name: default

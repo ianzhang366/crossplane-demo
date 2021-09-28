@@ -1,0 +1,26 @@
+---
+apiVersion: eks.aws.crossplane.io/v1beta1
+kind: Cluster
+metadata:
+  name: $CLUSTER_NAME
+spec:
+  forProvider:
+    region: us-east-1
+    roleArn: arn:aws:iam::$AWS_ACCOUNT_ID:role/$IAM_ROLE_NAME
+    tags:
+      owner: izhang-crossplane
+    resourcesVpcConfig:
+      endpointPrivateAccess: true
+      endpointPublicAccess: true
+      # Defined in examples/ec2
+      subnetIdRefs:
+        - name: sample-subnet1
+        - name: sample-subnet2
+      securityGroupIds:
+        - $SECURITY_GROUP_ID
+    version: "1.21"
+  writeConnectionSecretToRef:
+    name: $KUBECONFIG_SECRET_NAME
+    namespace: $KUBECONFIG_SECRET_NAMESPACE
+  providerConfigRef:
+    name: default

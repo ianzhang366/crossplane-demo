@@ -1,0 +1,68 @@
+#!/bin/bash
+
+. ./demo-magic.sh
+
+TYPE_SPEED=30
+# PROMPT_AFTER=1
+NO_WAIT=true
+
+DEMO_CMD_COLOR=""
+DEMO_COMMENT_COLOR=""
+COLOR_RESET=""
+
+function comment {
+    printf "\n\n#### %s ####\n" "$1"
+}
+
+aws_profile="far-edge"
+
+comment "starting Kind cluster"
+
+#pe "kind create cluster --kubeconfig=kind-cp --name cp-demo"
+
+pe "export KUBECONFIG=kind-cp"
+
+#p "install crossplane to cluster"
+#pe "kubectl create namespace crossplane-system"
+#
+#pe "helm repo add crossplane-stable https://charts.crossplane.io/stable"
+#pe "helm repo update"
+#
+#pe "helm install crossplane --namespace crossplane-system crossplane-stable/crossplane"
+
+pe "kubectl rollout status -n crossplane-system deployment/crossplane"
+
+comment "Get the AWS Creds"
+
+export BASE64ENCODED_AWS_ACCOUNT_CREDS=$(echo -e "[default]\naws_access_key_id = $(aws configure get aws_access_key_id --profile $aws_profile)\naws_secret_access_key = $(aws configure get aws_secret_access_key --profile $aws_profile)" | base64 | tr -d "\n")
+
+comment "Set up Crossplane AWS provider controller and attach it to a EKS policy role"
+
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+export IAM_ROLE_NAME="izhang-crossplane-eks"
+export SECURITY_GROUP_ID="sg-01357c192161335a9"
+export CLUSTER_NAME=crossplane-demo-cluster-v1
+export KUBECONFIG_SECRET_NAME=crossplane-demo-conn
+export KUBECONFIG_SECRET_NAMESPACE=default
+
+pe "cat ./provider.yaml | envsubst | kubectl apply -f -"
+
+pe "cat ./provider-cfg.yaml | envsubst | kubectl apply -f -"
+
+comment "Request VPC, SecurityGroup and Subnet for EKS"
+pe "cat ./vpc-subnet.yaml | kubectl apply -f -"
+
+comment "Request EKS Cluster"
+pe "cat ./eks-cluster.yaml | envsubst | kubectl apply -f -"
+
+pe "kubectl get  cluster $CLUSTER_NAME -o yaml"
+
+comment "Wait for EKS Cluster To Be Ready"
+pe "kubectl wait --for=condition=Ready=true --timeout=15m cluster $CLUSTER_NAME "
+
+comment "Get for EKS Cluster kubeconfig"
+pe "kubectl get secret -n $KUBECONFIG_SECRET_NAMESPACE $KUBECONFIG_SECRET_NAME -o json | jq -r -c '[.data.kubeconfig][0]' | base64 -d > eks-kubeconfig"
+
+comment "List Resource on EKS cluster"
+
+pe "kubectl get all -A --kubeconfig eks-kubeconfig"
